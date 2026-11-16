@@ -1,0 +1,97 @@
+// Deterministic reply writer. It is both the safety net (used when the AI
+// reply is missing or fails the number check) and the reference for what a
+// correct reply looks like. Every figure comes straight from the quote.
+import { formatInr } from '../../utils/text.js';
+
+const COPY = {
+  english: {
+    greeting: 'Namaste! Thank you for contacting Remedy Setu.',
+    quoteIntro: 'Here are the prices for you:',
+    suggestIntro: 'We have these options, with prices:',
+    unitLabel: { ratti: 'ratti', piece: 'pcs', mala: 'mala', puja: 'puja' },
+    perUnit: 'per',
+    total: 'Total',
+    nextTier: (qty, unit, price) => `Order ${qty}+ ${unit} and the rate drops to ${formatInr(price)} per ${unit}.`,
+    askQuantity: 'Please tell us how many you need and we will confirm the best rate.',
+    askProduct: 'Could you tell us the exact product you need (for example Neelam, 5 Mukhi Rudraksha)?',
+    complaint:
+      'We are very sorry for the trouble. Please share your order number and the details of the issue (a photo helps). Our team will look into it and get back to you.',
+    orderStatus: 'Please share your order number or the phone number used for the order and our team will check the status for you.',
+    pujaAsk: 'To book, please share the name of the person, gotra and your preferred date.',
+    closing: 'Shall we go ahead? Reply YES to confirm your order.',
+  },
+  hinglish: {
+    greeting: 'Namaste! Remedy Setu se sampark karne ke liye dhanyavaad.',
+    quoteIntro: 'Aapke liye rate ye hain:',
+    suggestIntro: 'Hamare paas ye options hain, rate ke saath:',
+    unitLabel: { ratti: 'ratti', piece: 'pcs', mala: 'mala', puja: 'puja' },
+    perUnit: 'per',
+    total: 'Total',
+    nextTier: (qty, unit, price) => `${qty}+ ${unit} order karne par rate ${formatInr(price)} per ${unit} ho jayega.`,
+    askQuantity: 'Kitni quantity chahiye, bata dijiye, hum best rate confirm kar denge.',
+    askProduct: 'Aapko kaun sa product chahiye, exact naam bata dijiye (jaise Neelam, 5 Mukhi Rudraksha)?',
+    complaint:
+      'Hume is takleef ke liye khed hai. Kripya apna order number aur problem ki detail (photo ke saath) bhej dijiye. Hamari team ise dekhkar aapko jawab degi.',
+    orderStatus: 'Kripya apna order number ya order mein diya hua phone number bhej dijiye, hamari team status check karke batayegi.',
+    pujaAsk: 'Booking ke liye kripya naam, gotra aur pasandida date bata dijiye.',
+    closing: 'Kya hum aage badhein? Order confirm karne ke liye YES likh dijiye.',
+  },
+  hindi: {
+    greeting: 'नमस्ते! रेमेडी सेतु से संपर्क करने के लिए धन्यवाद।',
+    quoteIntro: 'आपके लिए रेट ये हैं:',
+    suggestIntro: 'हमारे पास ये विकल्प हैं, रेट के साथ:',
+    unitLabel: { ratti: 'रत्ती', piece: 'पीस', mala: 'माला', puja: 'पूजा' },
+    perUnit: 'प्रति',
+    total: 'कुल',
+    nextTier: (qty, unit, price) => `${qty}+ ${unit} ऑर्डर करने पर रेट ${formatInr(price)} प्रति ${unit} हो जाएगा।`,
+    askQuantity: 'कृपया बताइए कितनी मात्रा चाहिए, हम सबसे अच्छा रेट कन्फर्म कर देंगे।',
+    askProduct: 'कृपया सही प्रोडक्ट का नाम बताइए (जैसे नीलम, 5 मुखी रुद्राक्ष)।',
+    complaint:
+      'असुविधा के लिए हमें खेद है। कृपया अपना ऑर्डर नंबर और समस्या की जानकारी (फोटो सहित) भेजिए। हमारी टीम जाँच करके आपको जवाब देगी।',
+    orderStatus: 'कृपया अपना ऑर्डर नंबर या ऑर्डर में दिया गया फोन नंबर भेजिए, हमारी टीम स्थिति जाँचकर बताएगी।',
+    pujaAsk: 'बुकिंग के लिए कृपया नाम, गोत्र और पसंदीदा तिथि बताइए।',
+    closing: 'क्या हम आगे बढ़ें? ऑर्डर कन्फर्म करने के लिए YES लिखिए।',
+  },
+};
+
+function lineText(line, copy, language) {
+  const name = language === 'hindi' ? line.hindiName : line.name;
+  const unit = copy.unitLabel[line.unit];
+  const base = `• ${name}: ${formatInr(line.unitPrice)} ${copy.perUnit} ${unit}`;
+  const priced = line.quantity !== null ? ` × ${line.quantity} = ${formatInr(line.lineTotal)}` : '';
+  const hint = line.nextTier && line.quantity !== null ? `\n  ${copy.nextTier(line.nextTier.minQty, unit, line.nextTier.price)}` : '';
+  return base + priced + hint;
+}
+
+function quoteBlock(quote, copy, language, intro) {
+  const lines = quote.lines.map((line) => lineText(line, copy, language));
+  const showTotal = quote.total !== null && quote.lines.filter((line) => line.lineTotal !== null).length > 1;
+  const total = showTotal ? [`${copy.total}: ${formatInr(quote.total)}`] : [];
+  return [intro, ...lines, ...total].join('\n');
+}
+
+/**
+ * analysis: { intent, language } - quote: { lines, total, isSuggestion }
+ */
+export function buildTemplateReply({ intent, language }, quote) {
+  const copy = COPY[language] || COPY.english;
+  const parts = [copy.greeting];
+
+  if (intent === 'complaint') {
+    parts.push(copy.complaint);
+  } else if (intent === 'order_status') {
+    parts.push(copy.orderStatus);
+  } else if (quote.lines.length > 0) {
+    const intro = quote.isSuggestion ? copy.suggestIntro : copy.quoteIntro;
+    parts.push(quoteBlock(quote, copy, language, intro));
+
+    const missingQuantity = quote.lines.some((line) => line.quantity === null);
+    if (intent === 'puja_booking') parts.push(copy.pujaAsk);
+    else if (missingQuantity) parts.push(copy.askQuantity);
+    else parts.push(copy.closing);
+  } else {
+    parts.push(copy.askProduct);
+  }
+
+  return parts.join('\n\n');
+}

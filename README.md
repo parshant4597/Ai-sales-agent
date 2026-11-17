@@ -2,6 +2,8 @@
 
 Assignment: **Option 3, AI Sales Reply Assistant** (Software Development Intern, Full Stack).
 
+**Live demo:** https://ai-sales-agent-0sv6.onrender.com (sign in with the credentials from the submission form). The free hosting sleeps when idle, so the first load can take about a minute.
+
 A sales agent pastes a customer's WhatsApp message (English, Hindi or Hinglish) and gets:
 
 1. the **detected intent** (price enquiry, bulk order, availability, puja booking, order status, complaint, general),

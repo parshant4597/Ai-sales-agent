@@ -19,8 +19,27 @@ export function extractNumbers(text) {
   return matches.map(Number);
 }
 
-export function hasDevanagari(text) {
-  return /[ऀ-ॿ]/.test(text);
+// Last 10 digits, so "+91 98765-43210" and "9876543210" are the same customer. '' if too short.
+export function toPhoneKey(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  return digits.length >= 10 ? digits.slice(-10) : '';
+}
+
+// A name is typed by a person and ends up inside an AI prompt and a greeting,
+// so keep it short and strip digits, line breaks and angle brackets.
+export function cleanName(name) {
+  return String(name || '')
+    .replace(/[\d\r\n<>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 40);
+}
+
+// "नीलम का रेट" is Hindi; "Neelam का rate 5 ratti" is mostly Roman letters, so it is Hinglish.
+export function isMostlyDevanagari(text) {
+  const devanagari = (text.match(/[ऀ-ॿ]/g) || []).length;
+  const latin = (text.match(/[a-zA-Z]/g) || []).length;
+  return devanagari > 0 && devanagari / (devanagari + latin) >= 0.3;
 }
 
 export function escapeRegExp(text) {

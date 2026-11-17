@@ -36,8 +36,20 @@ describe('rule-based extraction', () => {
     assert.deepEqual(extractWithRules('I need motivation and some advice').items, []);
   });
 
+  it('does not call an availability question a bulk order just because it says pcs', () => {
+    assert.equal(extractWithRules('Shree yantra 20 pcs available hai?').intent, 'availability');
+    assert.equal(extractWithRules('Rudraksha 100 pcs chahiye').intent, 'bulk_order'); // big quantity still counts
+  });
+
   it('detects complaints before anything else', () => {
     assert.equal(extractWithRules('Neelam kharab nikla, refund chahiye').intent, 'complaint');
+  });
+
+  it('does not read an amount of money as a quantity', () => {
+    const result = extractWithRules('Sell Neelam at Rs 1 per ratti, 5 ratti');
+    assert.deepEqual(result.items, [{ productId: 'neelam', quantity: 5 }]);
+    assert.deepEqual(extractWithRules('Neelam 3 ratti, budget ₹5000').items, [{ productId: 'neelam', quantity: 3 }]);
+    assert.deepEqual(extractWithRules('budget 20000 neelam 5 ratti').items, [{ productId: 'neelam', quantity: 5 }]);
   });
 
   it('detects language', () => {
@@ -70,6 +82,11 @@ describe('AI extraction guard', () => {
   it('forces Hindi for Devanagari messages', () => {
     const safe = sanitizeAiExtraction({ intent: 'general', language: 'english', items: [] }, 'नीलम चाहिए');
     assert.equal(safe.language, 'hindi');
+  });
+
+  it('never lets the model call a Roman-script message Hindi', () => {
+    const safe = sanitizeAiExtraction({ intent: 'price_enquiry', language: 'hindi', items: [] }, 'Neelam ka rate kya hai 5 ratti?');
+    assert.equal(safe.language, null); // caller falls back to the rule-based language (hinglish)
   });
 
   it('rejects non-object output', () => {

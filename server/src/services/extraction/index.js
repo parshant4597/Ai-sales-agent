@@ -52,5 +52,9 @@ export async function extractQuery(message) {
   const looseQuantity = hasItems || !category ? null : findLooseQuantity(message);
   const suggestions = category ? suggestProducts(message).map((product) => product.id) : [];
 
-  return { ...extraction, category, looseQuantity, suggestions, source };
+  // "Neelam 5 ratti" has no price word, but it is a price question. The AI often says "general" here.
+  const hasQuantity = extraction.items.some((item) => item.quantity !== null) || looseQuantity !== null;
+  const intent = extraction.intent === 'general' && hasQuantity ? 'price_enquiry' : extraction.intent;
+
+  return { ...extraction, intent, category, looseQuantity, suggestions, source };
 }

@@ -1,5 +1,150 @@
 @import 'tailwindcss';
 
-body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Devanagari', sans-serif;
+@theme {
+  --font-sans: 'Inter', 'Noto Sans Devanagari', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', 'Noto Sans Devanagari', Georgia, serif;
+
+  --animate-fade-up: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 7s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+}
+
+/* A warm, lit background: soft saffron and rose glows on cream. */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: #292524;
+    background-color: #fffaf4;
+    background-image:
+      radial-gradient(60rem 30rem at 8% -10%, rgba(251, 146, 60, 0.2), transparent 60%),
+      radial-gradient(50rem 28rem at 96% -6%, rgba(244, 63, 94, 0.1), transparent 60%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom component classes live in the components layer, so Tailwind utilities
+   (pl-10, px-5, rounded-full ...) can still override them. */
+@layer components {
+  /* Glassy white card used for every panel. */
+  .surface {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 1.25rem;
+    box-shadow:
+      0 1px 2px rgba(28, 25, 23, 0.04),
+      0 14px 34px -14px rgba(28, 25, 23, 0.16),
+      0 0 0 1px rgba(28, 25, 23, 0.04);
+  }
+
+  .btn-primary {
+    background-image: linear-gradient(135deg, #f59e0b, #f97316 55%, #ea580c);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 0.9rem;
+    box-shadow: 0 10px 22px -8px rgba(249, 115, 22, 0.6);
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s,
+      filter 0.15s;
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow: 0 14px 28px -8px rgba(249, 115, 22, 0.65);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #292524;
+    font-weight: 500;
+    border-radius: 0.85rem;
+    border: 1px solid #e7e5e4;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: #fff7ed;
+    border-color: #fdba74;
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 0.85rem;
+    border: 1px solid #e7e5e4;
+    background: #fff;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.875rem;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .field::placeholder {
+    color: #a8a29e;
+  }
+  .field:focus {
+    outline: none;
+    border-color: #fb923c;
+    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.18);
+  }
+
+  .gradient-text {
+    background-image: linear-gradient(90deg, #f59e0b, #ea580c 55%, #e11d48);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* WhatsApp-style chat background. */
+  .chat-wallpaper {
+    background-color: #efe6dc;
+    background-image: radial-gradient(rgba(120, 90, 60, 0.09) 1.2px, transparent 1.2px);
+    background-size: 18px 18px;
+  }
+
+  /* Left panel of the login page. */
+  .brand-panel {
+    background-color: #ea580c;
+    background-image:
+      radial-gradient(40rem 26rem at 0% 0%, rgba(253, 224, 71, 0.45), transparent 60%),
+      radial-gradient(36rem 28rem at 100% 100%, rgba(225, 29, 72, 0.55), transparent 60%),
+      linear-gradient(135deg, #f59e0b 0%, #ea580c 55%, #be123c 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-float {
+    animation: none;
+  }
 }

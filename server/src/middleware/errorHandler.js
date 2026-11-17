@@ -12,6 +12,8 @@ export function errorHandler(error, req, res, next) {
   // Expected errors (HttpError) are not bugs, so only unexpected ones get a stack trace.
   if (status >= 500 && !(error instanceof HttpError)) console.error('[error]', error);
 
-  const message = status >= 500 && env.isProduction ? 'Something went wrong on the server.' : error.message;
+  let message = status >= 500 && env.isProduction ? 'Something went wrong on the server.' : error.message;
+  if (error.type === 'entity.parse.failed') message = 'The request body is not valid JSON.';
+  if (error.type === 'entity.too.large') message = 'The request is too large.';
   res.status(status).json({ error: message });
 }

@@ -18,8 +18,15 @@ export const env = {
   aiBaseUrl: (process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/$/, ''),
   aiModel: process.env.AI_MODEL || 'openai/gpt-oss-120b',
 
-  // Optional shared password for the whole tool (HTTP Basic Auth).
-  appPassword: process.env.APP_PASSWORD || '',
+  // Signs the login cookie. Required in production (32+ random characters).
+  sessionSecret: process.env.SESSION_SECRET || '',
+  sessionDays: 7,
+
+  // The first admin account, created on startup if it does not exist yet.
+  // After that, the admin adds the rest of the team on the Team page.
+  adminName: process.env.ADMIN_NAME || 'Admin',
+  adminEmail: (process.env.ADMIN_EMAIL || '').trim().toLowerCase(),
+  adminPassword: process.env.ADMIN_PASSWORD || '',
 
   clientDistPath: path.resolve(serverRoot, '../client/dist'),
 };

@@ -1,0 +1,33 @@
+# Render "Blueprint": Render reads this file and creates the whole service for you.
+# One web service runs everything: the Express API and the built React app.
+services:
+  - type: web
+    name: remedy-setu-sales-assistant
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # Render makes a long random secret for you. It signs the login cookie.
+      - key: SESSION_SECRET
+        generateValue: true
+      # You type these in the Render dashboard. They are never stored in this repository.
+      - key: MONGODB_URI
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: Admin
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: AI_MODEL
+        value: openai/gpt-oss-120b

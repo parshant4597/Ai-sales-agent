@@ -70,12 +70,30 @@ describe('analyzeMessage (rule-based pipeline)', () => {
     assert.equal(result.quote.isSuggestion, true);
     assert.ok(result.quote.lines.length > 0);
     assert.ok(result.quote.lines.every((line) => line.quantity === 100));
+    assert.equal(result.quote.total, null); // options are alternatives, not one order
   });
 
   it('never invents a product for an unknown request', async () => {
     const result = await analyzeMessage('Diamond ring ka rate batao');
     assert.equal(result.quote.lines.length, 0);
     assert.doesNotMatch(result.reply, /₹/);
+  });
+
+  it('answers the complaint AND the sales request in one message', async () => {
+    const result = await analyzeMessage('Order mein moti kharab mila, refund chahiye and rudraksha 100 pcs chahiye');
+    assert.equal(result.intent, 'complaint');
+    assert.match(result.reply, /takleef/); // complaint part
+    assert.match(result.reply, /5 Mukhi Rudraksha/); // sales part
+    assert.match(result.reply, /₹4,500/); // 100 x ₹45
+    assert.ok(result.quote.lines.every((line) => line.productId.startsWith('rudraksha')));
+    assert.ok(!result.quote.lines.some((line) => line.productId === 'moti')); // the faulty product is not quoted
+  });
+
+  it('answers an order-status question plus a price question', async () => {
+    const result = await analyzeMessage('Mera order kab aayega, aur neelam 5 ratti ka rate bhi batao');
+    assert.equal(result.intent, 'order_status');
+    assert.match(result.reply, /order number/i);
+    assert.equal(result.quote.total, 9000);
   });
 
   it('sends complaints to a template with no prices', async () => {

@@ -28,6 +28,13 @@ const leadSchema = new mongoose.Schema(
     message: { type: String, required: true, trim: true, maxlength: 1000 },
     customerName: { type: String, trim: true, maxlength: 80, default: '' },
     phone: { type: String, trim: true, maxlength: 20, default: '' },
+    // Last 10 digits of the phone, used to recognise a returning customer.
+    phoneKey: { type: String, default: '', index: true },
+
+    // The team member who answered this customer. A member only sees leads where this is their id.
+    // The name is copied too, so the admin still sees who handled it after that person is removed.
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+    createdByName: { type: String, trim: true, maxlength: 60, default: '' },
 
     intent: { type: String, enum: INTENTS, required: true },
     language: { type: String, enum: LANGUAGES, required: true },

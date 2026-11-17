@@ -33,7 +33,7 @@ export function buildQuoteLine(product, quantity) {
     quantity: hasQuantity ? quantity : null,
     unitPrice: tier.price,
     tierMinQty: tier.minQty,
-    lineTotal: hasQuantity ? tier.price * quantity : null,
+    lineTotal: hasQuantity ? Math.round(tier.price * quantity) : null, // 5.25 ratti can give paise
     nextTier: findNextTier(product, hasQuantity ? quantity : 1),
     tiers: product.tiers,
   };

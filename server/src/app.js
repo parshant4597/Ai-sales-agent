@@ -3,12 +3,15 @@ import path from 'node:path';
 import express from 'express';
 import { env } from './config/env.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { securityHeaders } from './middleware/securityHeaders.js';
 import routes from './routes/index.js';
 
 export function createApp() {
   const app = express();
 
+  app.disable('x-powered-by'); // do not announce "Express" to everyone
   app.set('trust proxy', 1); // correct client IPs behind Render / Railway for the rate limiter
+  app.use(securityHeaders);
   app.use(express.json({ limit: '10kb' }));
 
   app.use('/api', routes);

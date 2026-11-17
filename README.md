@@ -200,7 +200,7 @@ client/src
 - Returning-customer memory with a personalised greeting, insights dashboard, voice input
 - Team login with an admin-managed Team page, hashed passwords, signed cookie sessions and protected routes
 - Guardrails, rule-based fallback, rate limiting
-- 156 automated tests (pricing, guards, edge cases, validation, login security, price list, lead access), mobile-friendly UI
+- 160 automated tests (pricing, guards, edge cases, validation, login security, price list, lead access, security headers), mobile-friendly UI
 
 ## Next (with one more week)
 
